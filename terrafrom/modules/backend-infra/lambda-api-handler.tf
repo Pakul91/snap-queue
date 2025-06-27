@@ -12,7 +12,6 @@ module "api_handler_lambda" {
     LOG_LEVEL   = "info"
   }
 
-
   tags = {
     Environment = var.env
     Application = var.namespace
