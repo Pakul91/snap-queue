@@ -1,6 +1,6 @@
 
-module "serverless_api"{
-    source = "./modules/serverless-api"
+module "backend_infra" {
+    source = "./modules/backend-infra"
 
     namespace = local.namespace
     region    = var.aws_region

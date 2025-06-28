@@ -38,3 +38,8 @@ variable "lambda_function_name" {
   type        = string
 }
 
+variable "endpoint_path" {
+  description = "Path of the API endpoint that this integration is for"
+  type        = string
+}
+

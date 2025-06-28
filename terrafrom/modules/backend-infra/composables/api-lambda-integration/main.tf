@@ -1,3 +1,10 @@
+/**
+  * Terraform module for integrating AWS API Gateway with Lambda functions
+  * This module sets up the necessary API Gateway integration and permissions for Lambda invocation.
+*/
+
+
+
 # Integration between API Gateway and Lambda - Connects the API endpoint to our Lambda
 # Uses AWS_PROXY integration type to automatically handle request/response mapping
 resource "aws_api_gateway_integration" "lambda_integration" {
@@ -16,7 +23,16 @@ resource "aws_lambda_permission" "allow_api_gateway" {
   action        = "lambda:InvokeFunction"
   function_name = var.lambda_function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${var.rest_api.execution_arn}/*/${var.http_method}${var.resource_id}"
+  source_arn    = "${var.rest_api.execution_arn}/*/*/${var.endpoint_path}"
 
   depends_on = [aws_api_gateway_integration.lambda_integration]
+}
+
+
+# OUTPUTS 
+
+# Outputs for the Lambda integration details
+output "lambda_integration" {
+    description = "Integration details for the Lambda function"
+    value = aws_api_gateway_integration.lambda_integration
 }

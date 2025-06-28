@@ -13,10 +13,12 @@ resource "aws_api_gateway_rest_api" "api" {
 # Deployment for the API Gateway
 resource "aws_api_gateway_deployment" "api_deployment" {
   depends_on = [
-    module.get_image_lambda_integration
+    module.upload_request_endpoint.lambda_integration,
+    module.get_image_endpoint.lambda_integration,
+    module.get_all_images_endpoint.lambda_integration
   ]
   rest_api_id = aws_api_gateway_rest_api.api.id
-  description = "Deployment for ${local.namespace} REST API"
+  description = "Deployment for ${var.namespace} REST API"
 
   lifecycle {
     create_before_destroy = true
@@ -30,3 +32,23 @@ resource "aws_api_gateway_stage" "api_stage" {
   deployment_id = aws_api_gateway_deployment.api_deployment.id
   rest_api_id   = aws_api_gateway_rest_api.api.id
 }
+
+module "upload_request_endpoint" {
+  source = "./endpoints/upload-request/"
+  api_root = aws_api_gateway_rest_api.api
+  env = var.env
+}
+
+module "get_image_endpoint" {
+  source = "./endpoints/get-image/"
+  api_root = aws_api_gateway_rest_api.api
+  env = var.env
+}
+
+module "get_all_images_endpoint" {
+  source = "./endpoints/get-all-images/"
+  api_root = aws_api_gateway_rest_api.api
+  env = var.env
+}
+
+
