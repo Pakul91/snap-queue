@@ -21,7 +21,7 @@ variable "raw_image_bucket" {
 }
 
 locals {
-    upload_request_endpoint = "get-image"
+    upload_request_endpoint = "upload-request" 
     upload_request_http_method = "POST" 
     upload_request_function_name = "upload-request-handler-${var.env}"
     upload_request_function_folder = "upload-request"
