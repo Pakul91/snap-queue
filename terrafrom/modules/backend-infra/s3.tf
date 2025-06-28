@@ -12,6 +12,19 @@ resource "aws_s3_bucket" "raw_image_bucket" {
   }
 }
 
+resource "aws_s3_bucket_notification" "raw_image_upload_notification" {
+    bucket = aws_s3_bucket.raw_image_bucket.id
+   
+   queue {
+        events = ["s3:ObjectCreated:*"]
+        queue_arn = aws_sqs_queue.image_processing_queue.arn
+    }
+
+    depends_on = [
+        aws_sqs_queue_policy.image_processing_queue_policy
+    ]
+}
+
 data "aws_iam_policy_document" "allow_s3_access_from_lambda" {
   statement {
     sid     = "AllowWriteAccessToLambdas"
