@@ -12,6 +12,14 @@ variable "env" {
   type        = string
 }
 
+variable "raw_image_bucket" {
+  description = "S3 bucket for storing raw images"
+  type        = object({
+    id = string
+    arn  = string
+  })
+}
+
 locals {
     upload_request_endpoint = "get-image"
     upload_request_http_method = "POST" 
@@ -47,7 +55,8 @@ module "upload_request_lambda" {
 
     env_variables = {
         ENVIRONMENT = var.env    
-        LOG_LEVEL   = "info"    
+        LOG_LEVEL   = "info" 
+        RAW_IMAGE_BUCKET_NAME = var.raw_image_bucket.id   
     }
 
     tags = {
@@ -68,9 +77,49 @@ module "upload_request_lambda_integration" {
     endpoint_path = local.upload_request_endpoint
 }
 
+
+# IAM role for the lambda to put objects in raw image bucket
+resource "aws_iam_policy" "s3_pre_signed_url_generation" {
+
+  name        = "${module.upload_request_lambda.function_name}-pre-signed-url-policy"
+  path        = "/"
+  description = "IAM policy for generating pre-signed URLs for S3 uploads in the ${var.env} environment"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:PutObjectAcl",
+        ]
+        Resource = [
+          "${var.raw_image_bucket.arn}/*" 
+        ]
+      }
+    ]
+  })
+
+  tags = {
+    Environment = var.env
+  }
+}
+
+
+
+# OUTPUTS
 output "lambda_integration" {
     description = "Integration details for the upload request Lambda function"
     value = module.upload_request_lambda_integration.lambda_integration
 }
+
+output "lambda_execution_role_arn" {
+  description = "ARN of the Lambda execution role"
+  value       = module.upload_request_lambda.function_execution_role.arn
+}
+    
+
+
 
   

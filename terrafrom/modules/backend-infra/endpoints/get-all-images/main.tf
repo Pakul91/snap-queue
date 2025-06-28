@@ -73,6 +73,11 @@ output "lambda_integration" {
   value       = module.get_all_images_lambda_integration.lambda_integration
 }
 
+output "lambda_execution_role_arn" {
+  description = "ARN of the Lambda execution role"
+  value       = module.get_all_images_lambda.function_execution_role.arn
+}
+
 
 
 

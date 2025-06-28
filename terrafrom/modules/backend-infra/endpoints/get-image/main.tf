@@ -79,4 +79,9 @@ output "lambda_integration" {
   description = "Integration details for the get image Lambda function"
   value = module.get_image_lambda_integration.lambda_integration
 }
+
+output "lambda_execution_role_arn" {
+  description = "ARN of the Lambda execution role"
+  value       = module.get_image_lambda.function_execution_role.arn
+}
   
