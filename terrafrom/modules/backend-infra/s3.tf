@@ -46,4 +46,24 @@ data "aws_iam_policy_document" "allow_s3_access_from_lambda" {
       ]
     }
   }
+
+  statement {
+    sid     = "AllowReadAccessToLambdas"
+    effect  = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectAcl"
+    ]
+
+    resources = [
+      aws_s3_bucket.raw_image_bucket.arn,
+      "${aws_s3_bucket.raw_image_bucket.arn}/*"
+    ]
+
+    principals {
+      type        = "AWS"
+      identifiers = [
+        module.process_raw_image_lambda.lambda_execution_role_arn,
+      ]
+  }
 }

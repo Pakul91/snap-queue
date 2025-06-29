@@ -33,6 +33,8 @@ resource "aws_api_gateway_stage" "api_stage" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
 }
 
+
+# Modules for each API endpoint - Each module defines a specific API endpoint with its own Lambda function
 module "upload_request_endpoint" {
   source = "./endpoints/upload-request/"
   api_root = aws_api_gateway_rest_api.api
