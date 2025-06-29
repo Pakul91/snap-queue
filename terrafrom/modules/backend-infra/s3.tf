@@ -65,5 +65,6 @@ data "aws_iam_policy_document" "allow_s3_access_from_lambda" {
       identifiers = [
         module.process_raw_image_lambda.lambda_execution_role_arn,
       ]
+    }
   }
 }
