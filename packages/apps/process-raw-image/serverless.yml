@@ -1,0 +1,27 @@
+service: output
+custom:
+  esbuild:
+    exclude:
+      - sharp
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: eu-west-2
+functions:
+  process-raw-image:
+    handler: index.handler
+package:
+  excludeDevDependencies: true
+  patterns:
+    - "!node_modules/**"
+    - "!image.png"
+    - "!json/*"
+    - "!images/*"
+    - "!package-lock.json"
+    # - "!pacakge.json"
+    - "!vite.config.js"
+    - "!src/**/*.ts"
+    - "!src/*.ts"
+    - "!__tests__"
+plugins:
+  - serverless-offline

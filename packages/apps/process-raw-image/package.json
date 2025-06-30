@@ -1,0 +1,24 @@
+{
+  "name": "@snap-queue/process-raw-image",
+  "type": "module",
+  "main": "index.js",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "vitest run",
+    "package": "SLS_DEBUG=* serverless package --package dist",
+    "dev": "serverless offline"
+  },
+  "devDependencies": {
+    "eslint": "^9.30.0",
+    "serverless": "^4.17.0",
+    "serverless-offline": "^14.4.0",
+    "vite": "^7.0.0",
+    "vitest": "^3.2.4"
+  },
+  "author": "Tomasz Pakulniewicz",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "sharp": "^0.34.2"
+  }
+}

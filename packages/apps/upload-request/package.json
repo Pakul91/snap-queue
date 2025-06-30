@@ -1,0 +1,21 @@
+{
+  "name": "@snap-queue/upload-request-function",
+  "type": "module",
+  "main": "index.js",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "vitest run",
+    "build": "rm -rf dist && esbuild ./index.js --bundle --platform=node --outfile=dist/index.js --target=es2019 --external:@aws-sdk/s3-request-presigner --external:@aws-sdk/client-s3",
+    "zip": "zip -rj dist/output.zip dist/*",
+    "package": "npm run build && npm run zip"
+  },
+  "author": "Tomasz Pakulniewicz",
+  "license": "ISC",
+  "description": "Lambda function to generate pre-signed URLs for S3 uploads",
+  "dependencies": {
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.5"
+  }
+}

@@ -20,6 +20,12 @@ variable "lambda_handler" {
   default     = "index.handler"
 }
 
+variable "lambda_layers" {
+  description = "ARN of the Lambda layer to include"
+  type        = list(string)
+  default     = []
+}
+
 variable "env_variables" {
   description = "Environment variables for the Lambda function"
   type        = map(string)

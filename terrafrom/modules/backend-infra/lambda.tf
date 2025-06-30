@@ -2,17 +2,31 @@ module "process_raw_image_lambda" {
     source = "./composables/lambda/"
     lambda_function_name = "process-raw-image-handler-${var.env}"
     lambda_folder_name = "process-raw-image"
+    lambda_layers=[aws_lambda_layer_version.sharp.arn]
     env = var.env
     namespace = var.namespace
+
     env_variables = {
         ENVIRONMENT = var.env    
         LOG_LEVEL   = "info" 
         RAW_IMAGE_BUCKET_NAME = aws_s3_bucket.raw_image_bucket.id
     }
+
     tags = {
         Environment = var.env
         Application = var.namespace  
     }
+}
+
+# Lambda later for sharp library - use from external package:
+# https://github.com/cbschuld/sharp-aws-lambda-layer?tab=readme-ov-file
+resource "aws_lambda_layer_version" "sharp" {
+  filename    = "../packages/libs/sharp-layer/release-x64.zip"
+  layer_name  = "sharpLayer"
+  description = "Provides the sharp library as a layer"
+
+  compatible_runtimes      = ["nodejs22.x"]
+  compatible_architectures = ["x86_64"]
 }
 
 resource "aws_iam_policy" "s3_raw_image_access" {
