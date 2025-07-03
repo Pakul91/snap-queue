@@ -1,28 +1,25 @@
-locals {
-    raw_image_bucket_name = "${var.namespace}-raw-images-${var.env}"
-}
 
-resource "aws_s3_bucket" "raw_image_bucket" {
-  bucket = local.raw_image_bucket_name
+resource "aws_s3_bucket" "image_buckets" {
+  for_each = local.image_buckets
+
+  bucket = each.value.name
   force_destroy = true
 
   tags = {
-    Name        = local.raw_image_bucket_name
+    Name        = each.value.name
     Environment = var.env
   }
 }
 
-resource "aws_s3_bucket_notification" "raw_image_upload_notification" {
-    bucket = aws_s3_bucket.raw_image_bucket.id
+resource "aws_s3_bucket_notification" "image_upload_notifications" {
+   for_each =  local.image_buckets
+
+   bucket = aws_s3_bucket.image_buckets[each.key].id
    
    queue {
         events = ["s3:ObjectCreated:*"]
-        queue_arn = aws_sqs_queue.image_processing_queue.arn
+        queue_arn =aws_sqs_queue.image_queues[each.key].arn
     }
-
-    depends_on = [
-        aws_sqs_queue_policy.image_processing_queue_policy
-    ]
 }
 
 data "aws_iam_policy_document" "allow_s3_access_from_lambda" {
@@ -35,8 +32,8 @@ data "aws_iam_policy_document" "allow_s3_access_from_lambda" {
     ]
 
     resources = [
-      aws_s3_bucket.raw_image_bucket.arn,
-      "${aws_s3_bucket.raw_image_bucket.arn}/*"
+      aws_s3_bucket.image_buckets["raw"].arn,
+      "${aws_s3_bucket.image_buckets["raw"].arn}/*"
     ]
 
     principals {
@@ -56,14 +53,14 @@ data "aws_iam_policy_document" "allow_s3_access_from_lambda" {
     ]
 
     resources = [
-      aws_s3_bucket.raw_image_bucket.arn,
-      "${aws_s3_bucket.raw_image_bucket.arn}/*"
+      aws_s3_bucket.image_buckets["raw"].arn,
+      "${aws_s3_bucket.image_buckets["raw"].arn}/*"
     ]
 
     principals {
       type        = "AWS"
       identifiers = [
-        module.process_raw_image_lambda.function_execution_role.arn,
+        module.lambda_image_handlers["raw_image"].function_execution_role.arn,
       ]
     }
   }

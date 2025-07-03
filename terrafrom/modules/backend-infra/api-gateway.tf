@@ -39,7 +39,7 @@ module "upload_request_endpoint" {
   source = "./endpoints/upload-request/"
   api_root = aws_api_gateway_rest_api.api
   env = var.env
-  raw_image_bucket = aws_s3_bucket.raw_image_bucket
+  raw_image_bucket = aws_s3_bucket.image_buckets["raw"]
 }
 
 module "get_image_endpoint" {

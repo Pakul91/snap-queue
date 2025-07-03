@@ -7,8 +7,11 @@ import sharp from "sharp";
 
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 
+const RAW_IMAGE_BUCKET_NAME = process.env.RAW_IMAGE_BUCKET_NAME;
+const PROCESSED_IMAGE_BUCKET_NAME = process.env.PROCESSED_IMAGE_BUCKET_NAME;
+
 // 1. Download image from S3 using stream
-async function downloadImageFromS3(bucket, key) {
+async function downloadImageFromS3(key) {
   // Validate file type
   const imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp"];
   const extension = key.split(".").pop().toLowerCase();
@@ -21,7 +24,7 @@ async function downloadImageFromS3(bucket, key) {
   }
 
   const command = new GetObjectCommand({
-    Bucket: bucket,
+    Bucket: RAW_IMAGE_BUCKET_NAME,
     Key: key,
   });
 
@@ -45,9 +48,9 @@ async function resizeImage(imageBuffer) {
 }
 
 // 3. Upload image to S3
-async function uploadImageToS3(bucket, key, imageBuffer) {
+async function uploadImageToS3(key, imageBuffer) {
   const command = new PutObjectCommand({
-    Bucket: bucket,
+    Bucket: PROCESSED_IMAGE_BUCKET_NAME,
     Key: key,
     Body: imageBuffer,
     ContentType: "image/jpeg",
@@ -61,15 +64,12 @@ export const handler = async (event) => {
   for (const record of event.Records) {
     try {
       const s3Event = JSON.parse(record.body);
-      const bucket = s3Event.Records[0].s3.bucket.name;
-      const key = decodeURIComponent(
-        s3Event.Records[0].s3.object.key.replace(/\+/g, " ")
-      );
+      const key = s3Event.Records[0].s3.object.key;
 
-      console.log("Processing:", { bucket, key });
+      console.log("Processing image with key:", key);
 
       // 1. Download
-      const originalImage = await downloadImageFromS3(bucket, key);
+      const originalImage = await downloadImageFromS3(key);
 
       console.log("Image downloaded successfully:");
 
@@ -81,7 +81,7 @@ export const handler = async (event) => {
       // 3. Upload
       const newKey = key.replace(/\.[^/.]+$/, "_150x150.jpg");
       console.log("Uploading resized image to:", newKey);
-      // await uploadImageToS3(bucket, newKey, resizedImage);
+      await uploadImageToS3(newKey, resizedImage);
 
       console.log("Successfully processed:", newKey);
     } catch (error) {

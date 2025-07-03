@@ -1,15 +1,21 @@
-# # SQS Queue for processing messages from SNS
-resource "aws_sqs_queue" "image_processing_queue" {
-  name                      = "${var.namespace}-image-processing-queue-${var.env}"
+# SQS Queues for processing messages from S3 events
+resource "aws_sqs_queue" "image_queues" {
+  for_each = local.image_queues
+  
+  name = each.value.name
   
   tags = {
     Environment = var.env
     Namespace   = var.namespace
+    Description = each.value.description
+    Type        = "${each.key}_image_queue"
   }
 }
 
-# Policy document allowing the S3 bucket to send messages to the SQS queue
-data "aws_iam_policy_document" "image_processing_queue_policy" {
+# Policy documents allowing S3 buckets to send messages to their respective SQS queues
+data "aws_iam_policy_document" "queue_policies" {
+  for_each = local.image_queues
+  
   statement {
     sid    = "AllowS3ToSendMessages"
     effect = "Allow"
@@ -18,18 +24,22 @@ data "aws_iam_policy_document" "image_processing_queue_policy" {
       type        = "Service"
       identifiers = ["s3.amazonaws.com"]
     }
-    resources = [aws_sqs_queue.image_processing_queue.arn]
+    resources = [aws_sqs_queue.image_queues[each.key].arn]
     condition {
       test     = "ArnEquals"
       variable = "aws:SourceArn"
-      values   = [aws_s3_bucket.raw_image_bucket.arn]
+      values   = [
+        aws_s3_bucket.image_buckets[each.key].arn
+      ]
     }
   }
 }
 
-# SQS Queue Policy to allow SNS to send messages to the queue (this has to be applied after the queue is created)
-resource "aws_sqs_queue_policy" "image_processing_queue_policy" {
-  queue_url = aws_sqs_queue.image_processing_queue.id
-  policy    = data.aws_iam_policy_document.image_processing_queue_policy.json
+# SQS Queue Policies to allow S3 to send messages to the queues
+resource "aws_sqs_queue_policy" "queue_policies" {
+  for_each  = local.image_queues
+  
+  queue_url = aws_sqs_queue.image_queues[each.key].id
+  policy    = data.aws_iam_policy_document.queue_policies[each.key].json
 }
 
