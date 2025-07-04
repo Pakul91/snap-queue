@@ -62,14 +62,14 @@ resource "aws_lambda_event_source_mapping" "lambda_sqs_event_source" {
 # S3 read access policy for Lambda functions
 resource "aws_iam_policy" "s3_read_access" {
   for_each = local.lambda_image_handlers
-  name     = "${module.lambda_image_handlers[each.key].function_name}-s3-access-policy"
+  name     = "${module.lambda_image_handlers[each.key].function_name}-access-policy"
   path        = "/"
   description = "IAM policy for Lambda to access S3 buckets"
   policy = each.value.policy   
 }
 
 # Attach the S3 policy to the Lambda execution role
-resource "aws_iam_role_policy_attachment" "lambda_s3_policy_attachments" {
+resource "aws_iam_role_policy_attachment" "lambda_policy_attachments" {
   for_each = local.lambda_image_handlers
   role       = module.lambda_image_handlers[each.key].function_execution_role.name
   policy_arn = aws_iam_policy.s3_read_access[each.key].arn

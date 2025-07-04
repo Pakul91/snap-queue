@@ -7,6 +7,11 @@ variable api_root {
   })
 }
 
+variable "namespace" {
+  description = "Namespace for the application, used for naming resources"
+  type        = string
+}
+
 variable "env" {
   description = "Environment name (e.g., dev, staging, prod)"
   type        = string
@@ -16,7 +21,7 @@ locals {
     get_image_endpoint = "get-image"
     get_image_http_method = "GET" 
     get_image_path_param = "image_id" 
-    get_image_function_name = "get-image-handler-${var.env}"
+    get_image_function_name = "${var.namespace}-get-image-handler-${var.env}"
     get_image_function_folder = "get-image"
 }
 

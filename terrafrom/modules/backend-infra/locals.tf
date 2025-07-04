@@ -75,6 +75,7 @@ locals {
       env_variables = {
         ENVIRONMENT = var.env    
         LOG_LEVEL   = "info" 
+        IMAGE_TABLE_NAME = aws_dynamodb_table.image_data_table.name
       }
       policy = jsonencode({
         Version = "2012-10-17"
@@ -90,20 +91,19 @@ locals {
               aws_s3_bucket.image_buckets["processed"].arn,
               "${aws_s3_bucket.image_buckets["processed"].arn}/*"
             ]
-          }
-          # ,
-          # {
-          #   Effect = "Allow"
-          #   Action = [
-          #     "dynamodb:PutItem",
-          #     "dynamodb:BatchWriteItem"
-          #   ]
-          #   Resource = aws_dynamodb_table.image_data_table.arn
-          # }
+          },
+          {
+            Effect = "Allow"
+            Action = [
+                "dynamodb:PutItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:GetItem",
+                "dynamodb:Query"
+            ]
+            Resource = aws_dynamodb_table.image_data_table.arn
+            }
         ]
       })
-
-
       sqs_queue_key = "processed"
     }
   }

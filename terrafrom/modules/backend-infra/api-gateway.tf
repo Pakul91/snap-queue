@@ -39,18 +39,21 @@ module "upload_request_endpoint" {
   source = "./endpoints/upload-request/"
   api_root = aws_api_gateway_rest_api.api
   env = var.env
+  namespace = var.namespace
   raw_image_bucket = aws_s3_bucket.image_buckets["raw"]
 }
 
 module "get_image_endpoint" {
   source = "./endpoints/get-image/"
   api_root = aws_api_gateway_rest_api.api
+  namespace = var.namespace
   env = var.env
 }
 
 module "get_all_images_endpoint" {
   source = "./endpoints/get-all-images/"
   api_root = aws_api_gateway_rest_api.api
+  namespace = var.namespace
   env = var.env
 }
 
