@@ -10,28 +10,33 @@ export const handler = async (event, context) => {
   console.log("Received event:", JSON.stringify(event, null, 2));
 
   try {
-    const requestBody = event.body ? JSON.parse(event.body) : {};
-
-    const fileExtension = requestBody.fileExtension;
-
     // Generate a unique filename with UUID to prevent overwriting
-    const fileName = `${uuidv4()}${fileExtension}`;
+    const fileName = uuidv4();
+
+    const requestData = event.queryStringParameters || {};
+    const userId = requestData.userId || "defaultUser"; // Default user ID if
+    const originalFileName = requestData.originalFileName || "image.jpg"; // Default file name if not provided
 
     // Create a command for the PUT operation
     const command = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: fileName,
-      ContentType: requestBody.contentType || "image/jpeg",
+      Metadata: {
+        userId: userId,
+        originalFileName: originalFileName,
+      },
     });
 
-    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 });
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 30 });
 
     return {
       statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+      },
       body: JSON.stringify({
-        message: "Pre-signed URL generated successfully",
         uploadUrl: signedUrl,
-        fileName: fileName,
       }),
     };
   } catch (error) {

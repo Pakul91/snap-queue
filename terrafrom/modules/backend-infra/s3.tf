@@ -65,3 +65,15 @@ data "aws_iam_policy_document" "allow_s3_access_from_lambda" {
     }
   }
 }
+
+resource "aws_s3_bucket_cors_configuration" "raw_image_bucket_cors" {
+  bucket = aws_s3_bucket.image_buckets["raw"].id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "PUT", "POST"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}

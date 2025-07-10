@@ -14,11 +14,22 @@ resource "aws_api_gateway_rest_api" "api" {
 resource "aws_api_gateway_deployment" "api_deployment" {
   depends_on = [
     module.upload_request_endpoint.lambda_integration,
+    module.upload_request_endpoint.cors_integration,
     module.get_image_endpoint.lambda_integration,
     module.get_all_images_endpoint.lambda_integration
   ]
+  
   rest_api_id = aws_api_gateway_rest_api.api.id
   description = "Deployment for ${var.namespace} REST API"
+
+  triggers = {
+    redeployment = sha1(join("", [
+      module.upload_request_endpoint.lambda_integration.id,
+      module.upload_request_endpoint.cors_integration.id,
+      module.get_image_endpoint.lambda_integration.id,
+      module.get_all_images_endpoint.lambda_integration.id
+    ]))
+  }
 
   lifecycle {
     create_before_destroy = true

@@ -27,7 +27,7 @@ variable "raw_image_bucket" {
 
 locals {
     upload_request_endpoint = "upload-request" 
-    upload_request_http_method = "POST" 
+    upload_request_http_method = "GET" 
     upload_request_function_name = "${var.namespace}-upload-request-handler-${var.env}"
     upload_request_function_folder = "upload-request"
 }
@@ -49,6 +49,30 @@ resource "aws_api_gateway_method" "upload_request_method" {
   http_method   = local.upload_request_http_method 
   authorization = "NONE" // No authentication required to access the API
 } 
+
+resource "aws_api_gateway_method_response" "upload_request_method_response" {
+  rest_api_id = var.api_root.id
+  resource_id = aws_api_gateway_resource.upload_request_endpoint.id
+  http_method = aws_api_gateway_method.upload_request_method.http_method
+  status_code = "200" // HTTP status code for successful response
+
+  response_parameters = {
+   "method.response.header.Access-Control-Allow-Origin" = true// Indicates that the response will include a Content-Type header
+  }
+}
+
+module "endpoint_cors_integration" {
+  source = "../../composables/cors-integration/"
+  
+  api_root     = var.api_root
+  resource_id  = aws_api_gateway_resource.upload_request_endpoint.id
+  
+  allowed_methods = ["GET", "POST", "OPTIONS"]
+  allowed_origin  = "*"
+  allowed_headers = ["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key", "X-Amz-Security-Token"]
+  allowed_credentials = false
+}
+
 
 # Lambda function for handling image retrieval requests
 # This function processes GET requests to retrieve image data from storage
@@ -80,6 +104,7 @@ module "upload_request_lambda_integration" {
     uri = module.upload_request_lambda.invoke_arn  
     lambda_function_name = module.upload_request_lambda.function_name
     endpoint_path = local.upload_request_endpoint
+
 }
 
 
@@ -111,6 +136,11 @@ resource "aws_iam_policy" "s3_pre_signed_url_generation" {
   }
 }
 
+resource "aws_iam_role_policy_attachment" "upload_request_lambda_s3_policy" {
+  role       = module.upload_request_lambda.function_execution_role.name
+  policy_arn = aws_iam_policy.s3_pre_signed_url_generation.arn
+}
+
 
 
 # OUTPUTS
@@ -122,6 +152,11 @@ output "lambda_integration" {
 output "lambda_execution_role_arn" {
   description = "ARN of the Lambda execution role"
   value       = module.upload_request_lambda.function_execution_role.arn
+}
+
+output "cors_integration" {
+  description = "Integration details for the CORS OPTIONS method"
+  value       = module.endpoint_cors_integration.cors_integration
 }
     
 
